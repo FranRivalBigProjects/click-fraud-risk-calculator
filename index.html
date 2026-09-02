@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Click Fraud Risk Calculator</title>
+<meta name="description" content="Estimate your ad campaign's click fraud risk level based on click volume, conversion rate, and bounce rate.">
+<meta name="google-site-verification" content="REPLACE_WITH_YOUR_VERIFICATION_CODE">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0f12;color:#d7dbe0;font-family:'JetBrains Mono',monospace;line-height:1.6;padding:24px 16px 60px}
+.wrap{max-width:760px;margin:0 auto}
+h1{font-size:22px;color:#7ee787;margin-bottom:6px}
+.subtitle{color:#8b949e;font-size:14px;margin-bottom:24px}
+.panel{background:#14171a;border:1px solid #2a2f36;border-radius:6px;padding:18px;margin-bottom:20px}
+.panel h2{font-size:15px;color:#58a6ff;margin-bottom:12px}
+label{display:block;font-size:12px;color:#8b949e;margin:10px 0 4px}
+input[type=number]{width:100%;background:#0a0c0e;border:1px solid #2a2f36;border-radius:4px;color:#d7dbe0;font-family:'JetBrains Mono',monospace;font-size:13px;padding:10px}
+.row-2{display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:560px){.row-2{grid-template-columns:1fr 1fr;gap:12px}}
+.btn{background:#238636;color:#fff;border:none;border-radius:4px;padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;margin-top:12px}
+.info-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid #1c2026}
+.info-row span:first-child{color:#8b949e}
+.info-row span:last-child{color:#7ee787;font-weight:500}
+.verdict{padding:14px;border-radius:6px;margin-top:12px;font-size:14px;font-weight:700;text-align:center}
+.verdict.low{background:rgba(126,231,135,0.1);color:#7ee787;border:1px solid #2f6b3a}
+.verdict.medium{background:rgba(240,200,90,0.1);color:#f0c85a;border:1px solid #6b5a2f}
+.verdict.high{background:rgba(248,81,73,0.1);color:#f85149;border:1px solid #7a2e29}
+article{font-size:13px;color:#a9b1bb;margin-top:26px}
+article h2{font-size:15px;color:#58a6ff;margin:16px 0 8px}
+article p{margin-bottom:8px}
+footer{text-align:center;font-size:11px;color:#4a5158;margin-top:34px}
+</style></head>
+<body><div class="wrap">
+<h1>Click Fraud Risk Calculator</h1>
+<p class="subtitle">Enter your campaign metrics to get a rough risk estimate for invalid or fraudulent clicks.</p>
+<div class="panel">
+<h2>Campaign Metrics</h2>
+<div class="row-2">
+<div><label>Total clicks</label><input type="number" id="clicks" value="1000"></div>
+<div><label>Conversions</label><input type="number" id="conversions" value="5"></div>
+</div>
+<div class="row-2">
+<div><label>Bounce rate (%)</label><input type="number" id="bounceRate" value="75"></div>
+<div><label>Avg time on site (seconds)</label><input type="number" id="timeOnSite" value="8"></div>
+</div>
+<button class="btn" id="calcBtn">Calculate</button>
+<div id="results" style="margin-top:14px;"></div>
+</div>
+<article><h2>How to Read This</h2><p>Very low conversion rate combined with a high bounce rate and very short time on site is a classic pattern of low-quality or fraudulent traffic, though it can also simply mean poor ad-to-landing-page relevance. Use this as a prompt to dig into your traffic source reports, not as definitive proof of fraud.</p></article>
+<footer>Client-side tool. All calculations run locally in your browser.</footer>
+</div>
+<script>
+function infoRow(label,value){ return '<div class="info-row"><span>'+label+'</span><span>'+value+'</span></div>'; }
+function calc(){
+  var clicks=parseFloat(document.getElementById('clicks').value);
+  var conversions=parseFloat(document.getElementById('conversions').value);
+  var bounceRate=parseFloat(document.getElementById('bounceRate').value);
+  var timeOnSite=parseFloat(document.getElementById('timeOnSite').value);
+  if(!clicks){
+    document.getElementById('results').innerHTML=infoRow('Error','Enter total clicks at least.');
+    return;
+  }
+  var convRate=(conversions/clicks)*100;
+  var riskScore=0;
+  if(convRate<0.5) riskScore+=2; else if(convRate<1.5) riskScore+=1;
+  if(bounceRate>80) riskScore+=2; else if(bounceRate>60) riskScore+=1;
+  if(timeOnSite<10) riskScore+=2; else if(timeOnSite<20) riskScore+=1;
+
+  var level, cls;
+  if(riskScore>=5){ level='High risk pattern'; cls='high'; }
+  else if(riskScore>=3){ level='Medium risk pattern'; cls='medium'; }
+  else { level='Low risk pattern'; cls='low'; }
+
+  var html='';
+  html+=infoRow('Conversion rate', convRate.toFixed(2)+'%');
+  html+=infoRow('Bounce rate', bounceRate+'%');
+  html+=infoRow('Avg time on site', timeOnSite+'s');
+  html+='<div class="verdict '+cls+'">'+level+'</div>';
+  document.getElementById('results').innerHTML=html;
+}
+document.getElementById('calcBtn').addEventListener('click',calc);
+calc();
+</script>
+</body></html>
